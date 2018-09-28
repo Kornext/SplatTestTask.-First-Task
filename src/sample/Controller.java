@@ -44,22 +44,22 @@ public class Controller {
             searchingText = SecondForm.searchingText;
             DirectoryChooser directoryChooser = new DirectoryChooser();
             Node source = (Node) actionEvent.getSource();
-            List<File> listResultSerch = null;
+            List<File> listResultSearch;
             File selectedDirectory = directoryChooser.showDialog(source.getScene().getWindow());
             if (selectedDirectory != null) {
-                listResultSerch = processFilesFromFolder(selectedDirectory, expansion);
-                for (int i = 0; i < listResultSerch.size(); i++) {
-                    if (serchOnFile(searchingText, listResultSerch.get(i)) == false) {
-                        listResultSerch.remove(i);
+                listResultSearch = processFilesFromFolder(selectedDirectory, expansion);
+                for (int i = 0; i < listResultSearch.size(); i++) {
+                    if (!serchOnFile(searchingText, listResultSearch.get(i))) {
+                        listResultSearch.remove(i);
                     }
                 }
-                createTree(listResultSerch);
+                createTree(listResultSearch);
             }
         }
     }
 
     @FXML
-    public void clickLeafe(MouseEvent event) throws IOException {
+    public void clickLeaf(MouseEvent event) throws IOException {
 
         Tab tab;
         TreeView tree = (TreeView) event.getSource();
@@ -132,7 +132,7 @@ public class Controller {
                         break;
                     }
                 }
-                if (flag == false) {
+                if (!flag) {
                     TreeItem<String> currentNode = new TreeItem<>(words[j]);
                     prefNode.getChildren().addAll(currentNode);
                     prefNode = currentNode;
