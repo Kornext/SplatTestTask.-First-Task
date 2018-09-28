@@ -45,7 +45,7 @@ public class SecondForm {
         textField.setLayoutY(204);
         textField.setPrefSize(68, 25);
 
-        textArea.setText("all be okay believe on that");
+        //textArea.setText("all be okay believe on that");
 
         AnchorPane rootAnchorPane = new AnchorPane();
         rootAnchorPane.setBottomAnchor(btnCancel, 15D);

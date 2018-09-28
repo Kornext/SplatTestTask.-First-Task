@@ -2,11 +2,9 @@ package sample;
 
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.event.*;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
+import javafx.scene.input.MouseEvent;
 import javafx.stage.DirectoryChooser;
 import sun.reflect.generics.tree.Tree;
 
@@ -23,6 +21,9 @@ public class Controller {
     String searchingText;
     String expansion;
 
+
+    //TODO Многопоточность. Тесты?
+
     @FXML
     private Button button;
 
@@ -32,10 +33,11 @@ public class Controller {
     @FXML
     private TreeView<String> treeView;
 
-    //all be okay believe on that
+    @FXML
+    private TabPane tabPane;
 
     @FXML
-    public void click(ActionEvent actionEvent) throws IOException {
+    public void clickButton(ActionEvent actionEvent) throws IOException {
         SecondForm.display();
         if (SecondForm.expansion != null && SecondForm.searchingText != null) {
             expansion = SecondForm.expansion;
@@ -44,51 +46,45 @@ public class Controller {
             Node source = (Node) actionEvent.getSource();
             List<File> listResultSerch = null;
             File selectedDirectory = directoryChooser.showDialog(source.getScene().getWindow());
-            System.out.println(selectedDirectory.getPath());
             if (selectedDirectory != null) {
                 listResultSerch = processFilesFromFolder(selectedDirectory, expansion);
-            }
-
-
-            //Вывод
-//            for (int i = 0; i < listResultSerch.size(); i++) {
-//                System.out.println(listResultSerch.get(i).toString());
-//            }
-
-            System.out.println("******************************************");
-            for (int i = 0; i < listResultSerch.size(); i++) {
-                if (serchOnFile(searchingText, listResultSerch.get(i)) == false) {
-                    listResultSerch.remove(i);
+                for (int i = 0; i < listResultSerch.size(); i++) {
+                    if (serchOnFile(searchingText, listResultSerch.get(i)) == false) {
+                        listResultSerch.remove(i);
+                    }
                 }
+                createTree(listResultSerch);
             }
-
-            //Вывод
-            for (int i = 0; i < listResultSerch.size(); i++) {
-                System.out.println(listResultSerch.get(i).toString());
-            }
-            createTree(listResultSerch);
         }
-
-//            //Тестовое дерево
-//            TreeItem<String> rootNode = new TreeItem<>("root");
-//            TreeItem<String> node1 = new TreeItem<>("111");
-//            TreeItem<String> node2 = new TreeItem<>("222");
-//            TreeItem<String> node3 = new TreeItem<>("333");
-//            TreeItem<String> node4 = new TreeItem<>("444");
-//            TreeItem<String> node12 = new TreeItem<>("112");
-//            TreeItem<String> node13 = new TreeItem<>("113");
-//            TreeItem<String> node14 = new TreeItem<>("114");
-//            rootNode.getChildren().addAll(node1, node2, node3, node4);
-//            node1.getChildren().addAll(node12, node13, node14);
-//            treeView.setRoot(rootNode);
-//            System.out.println("**************************");
-//            List<TreeItem<String>> list = rootNode.getChildren();
-//            for(TreeItem<String> in : list) {
-//                System.out.println(in.getValue());
-//            }
     }
 
-    //В рекурсии передавать и listResult
+    @FXML
+    public void clickLeafe(MouseEvent event) throws IOException {
+
+        Tab tab;
+        TreeView tree = (TreeView) event.getSource();
+        TreeItem<String> treeItem = (TreeItem<String>) tree.getSelectionModel().getSelectedItem();
+        if(treeItem != null) {
+            if(treeItem.getChildren().isEmpty() && event.getClickCount() == 2) {
+                tab = new Tab(treeItem.getValue());
+                String pathFile = treeItem.getValue();
+                while(treeItem.getParent() != null) {
+                    treeItem = treeItem.getParent();
+                    pathFile = treeItem.getValue() + "\\" + pathFile;
+                }
+                TextArea textArea = new TextArea();
+                textArea.setWrapText(true);
+                tab.setContent(textArea);
+                tabPane.getTabs().addAll(tab);
+                FileInputStream fis=new FileInputStream(new File(pathFile));
+                byte data[]=new byte[fis.available()];
+                fis.read(data);
+                fis.close();
+                textArea.setText(new String(data));
+            }
+        }
+    }
+
     private List<File> processFilesFromFolder(File folder, String expansion) {
         File[] folderEntries = folder.listFiles();
         for (File entry : folderEntries) {
