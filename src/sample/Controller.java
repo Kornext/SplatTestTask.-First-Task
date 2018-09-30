@@ -6,14 +6,10 @@ import javafx.scene.control.*;
 import javafx.event.*;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.DirectoryChooser;
-import sun.reflect.generics.tree.Tree;
 
-import javax.swing.tree.TreePath;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeMap;
-import java.util.TreeSet;
 
 public class Controller {
 
@@ -44,16 +40,17 @@ public class Controller {
             searchingText = SecondForm.searchingText;
             DirectoryChooser directoryChooser = new DirectoryChooser();
             Node source = (Node) actionEvent.getSource();
-            List<File> listResultSearch;
+            List<File> listFiles;
             File selectedDirectory = directoryChooser.showDialog(source.getScene().getWindow());
             if (selectedDirectory != null) {
-                listResultSearch = processFilesFromFolder(selectedDirectory, expansion);
-                for (int i = 0; i < listResultSearch.size(); i++) {
-                    if (!serchOnFile(searchingText, listResultSearch.get(i))) {
-                        listResultSearch.remove(i);
+                listFiles = processFilesFromFolder(selectedDirectory, expansion);
+                List<File> listFilesAfterSearch = new ArrayList<>();
+                for (int i = 0; i < listFiles.size(); i++) {
+                    if (serchOnFile(searchingText, listFiles.get(i))) {
+                        listFilesAfterSearch.add(listFiles.get(i));
                     }
                 }
-                createTree(listResultSearch);
+                createTree(listFilesAfterSearch);
             }
         }
     }
