@@ -57,7 +57,7 @@ public class Controller {
 
     @FXML
     public void clickLeaf(MouseEvent event) throws IOException {
-
+//
         Tab tab;
         TreeView tree = (TreeView) event.getSource();
         TreeItem<String> treeItem = (TreeItem<String>) tree.getSelectionModel().getSelectedItem();
