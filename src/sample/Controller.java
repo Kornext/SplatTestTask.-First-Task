@@ -13,6 +13,7 @@ import java.util.List;
 
 public class Controller {
 
+    List<File> listFilesAfterSearch = new ArrayList<>();
     List<File> listResult = new ArrayList<>();
     String searchingText;
     String expansion;
@@ -33,7 +34,7 @@ public class Controller {
     private TabPane tabPane;
 
     @FXML
-    public void clickButton(ActionEvent actionEvent) throws IOException {
+    public void clickButtonOverlook(ActionEvent actionEvent) throws IOException {
         SecondForm.display();
         if (SecondForm.expansion != null && SecondForm.searchingText != null) {
             expansion = SecondForm.expansion;
@@ -44,7 +45,6 @@ public class Controller {
             File selectedDirectory = directoryChooser.showDialog(source.getScene().getWindow());
             if (selectedDirectory != null) {
                 listFiles = processFilesFromFolder(selectedDirectory, expansion);
-                List<File> listFilesAfterSearch = new ArrayList<>();
                 for (int i = 0; i < listFiles.size(); i++) {
                     if (serchOnFile(searchingText, listFiles.get(i))) {
                         listFilesAfterSearch.add(listFiles.get(i));
@@ -56,28 +56,62 @@ public class Controller {
     }
 
     @FXML
+    public void clickButtonSelectAll(ActionEvent actionEvent) {
+        TextArea textArea = (TextArea) tabPane.getSelectionModel().getSelectedItem().getContent();
+        textArea.selectRange(0, textArea.getLength());
+    }
+
+    @FXML
+    public void clickButtonNext(ActionEvent actionEvent) throws IOException {
+        String currentTabName = tabPane.getSelectionModel().getSelectedItem().getText();
+        for (int i = 0; i < listFilesAfterSearch.size(); i++) {
+            String filePath = listFilesAfterSearch.get(i).getPath();
+            if (filePath.contains(currentTabName)) {
+                Tab tab = tabPane.getSelectionModel().getSelectedItem();
+                if (i + 1 == listFilesAfterSearch.size()) {
+                    changeCurrentTab(tab, listFilesAfterSearch.get(0));
+                    //openTab(listFilesAfterSearch.get(0));
+                } else {
+                    changeCurrentTab(tab, listFilesAfterSearch.get(i + 1));
+                    //openTab(listFilesAfterSearch.get(i + 1));
+                }
+                break;
+            }
+        }
+    }
+
+    @FXML
+    public void clickButtonPrev(ActionEvent actionEvent) throws IOException {
+        String currentTabName = tabPane.getSelectionModel().getSelectedItem().getText();
+        for (int i = 0; i < listFilesAfterSearch.size(); i++) {
+            String filePath = listFilesAfterSearch.get(i).getPath();
+            if (filePath.contains(currentTabName)) {
+                Tab tab = tabPane.getSelectionModel().getSelectedItem();
+                if (i == 0) {
+                    changeCurrentTab(tab, listFilesAfterSearch.get(listFilesAfterSearch.size() - 1));
+                    //openTab(listFilesAfterSearch.get(listFilesAfterSearch.size() - 1));
+                } else {
+                    changeCurrentTab(tab, listFilesAfterSearch.get(i - 1));
+                    //openTab(listFilesAfterSearch.get(i - 1));
+                }
+                break;
+            }
+        }
+    }
+
+    @FXML
     public void clickLeaf(MouseEvent event) throws IOException {
 
-        Tab tab;
         TreeView tree = (TreeView) event.getSource();
         TreeItem<String> treeItem = (TreeItem<String>) tree.getSelectionModel().getSelectedItem();
-        if(treeItem != null) {
-            if(treeItem.getChildren().isEmpty() && event.getClickCount() == 2) {
-                tab = new Tab(treeItem.getValue());
+        if (treeItem != null) {
+            if (treeItem.getChildren().isEmpty() && event.getClickCount() == 2) {
                 String pathFile = treeItem.getValue();
-                while(treeItem.getParent() != null) {
+                while (treeItem.getParent() != null) {
                     treeItem = treeItem.getParent();
                     pathFile = treeItem.getValue() + "\\" + pathFile;
                 }
-                TextArea textArea = new TextArea();
-                textArea.setWrapText(true);
-                tab.setContent(textArea);
-                tabPane.getTabs().addAll(tab);
-                FileInputStream fis=new FileInputStream(new File(pathFile));
-                byte data[]=new byte[fis.available()];
-                fis.read(data);
-                fis.close();
-                textArea.setText(new String(data));
+                openTab(new File(pathFile));
             }
         }
     }
@@ -139,5 +173,34 @@ public class Controller {
         if (rootNode != null) {
             treeView.setRoot(rootNode);
         }
+    }
+
+    private void openTab(File file) throws IOException {
+        String filePath = file.getPath();
+        int indexLastSlach = filePath.lastIndexOf('\\');
+        String tabName = filePath.substring(++indexLastSlach, filePath.length());
+        Tab tab = new Tab(tabName);
+        TextArea textArea = new TextArea();
+        textArea.setWrapText(true);
+        tab.setContent(textArea);
+        tabPane.getTabs().addAll(tab);
+        FileInputStream fis = new FileInputStream(new File(file.getPath()));
+        byte data[] = new byte[fis.available()];
+        fis.read(data);
+        fis.close();
+        textArea.setText(new String(data));
+    }
+
+    private void changeCurrentTab(Tab tab, File file) throws IOException {
+        String filePath = file.getPath();
+        int indexLastSlach = filePath.lastIndexOf('\\');
+        String tabName = filePath.substring(++indexLastSlach, filePath.length());
+        tab.setText(tabName);
+        TextArea textArea = (TextArea) tab.getContent();
+        FileInputStream fis = new FileInputStream(new File(file.getPath()));
+        byte data[] = new byte[fis.available()];
+        fis.read(data);
+        fis.close();
+        textArea.setText(new String(data));
     }
 }
